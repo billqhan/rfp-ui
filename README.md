@@ -22,6 +22,13 @@ React-based frontend for the RFP Response Platform. Provides an intuitive dashbo
 ### Installation
 
 ```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/billqhan/rfp-ui.git
+cd rfp-ui
+
+# Or if already cloned, initialize submodules
+git submodule update --init --recursive
+
 # Install dependencies
 npm install
 
@@ -31,6 +38,20 @@ cp .env.example .env
 # Edit .env with your API Gateway URL
 # VITE_API_BASE_URL=https://YOUR_API_GATEWAY_ID.execute-api.us-east-1.amazonaws.com/dev
 ```
+
+### API Contracts
+
+This repository uses contracts from `rfp-infrastructure` as a git submodule:
+
+```bash
+# Update contracts to latest version
+git submodule update --remote contracts
+
+# Validate API integration against contracts
+./validate-contracts.sh
+```
+
+**Contract Location:** `contracts/rfp-contracts/openapi/api-gateway.yaml`
 
 ### Development
 
