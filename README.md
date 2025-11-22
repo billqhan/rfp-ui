@@ -1,3 +1,4 @@
+[![CI/CD](https://github.com/billqhan/rfp-ui/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/billqhan/rfp-ui/actions)
 # RFP Response Platform - UI
 
 React-based frontend for the RFP Response Platform. Provides an intuitive dashboard for viewing opportunities, matches, and reports.
