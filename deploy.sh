@@ -13,6 +13,13 @@ BUCKET_NAME="${1:-${UI_BUCKET:-${BUCKET_PREFIX:+${BUCKET_PREFIX}-}rfp-ui-${ENVIR
 REGION="${2:-${REGION:-us-east-1}}"
 CREATE_BUCKET="${3:-false}"
 
+# Guard: bucket name must not be empty
+if [ -z "$BUCKET_NAME" ]; then
+    echo "❌ Bucket name is empty. Provide bucket arg or set UI_BUCKET or BUCKET_PREFIX/ENVIRONMENT variables."
+    echo "Usage: ./deploy.sh <bucket-name> [region] [create-bucket-true|false]"
+    exit 1
+fi
+
 echo ""
 echo "╔════════════════════════════════════════════════════════╗"
 echo "║          WEB UI DEPLOYMENT SCRIPT                     ║"
