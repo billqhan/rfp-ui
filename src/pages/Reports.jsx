@@ -107,23 +107,19 @@ export default function Reports() {
     console.log('handleViewReport called with:', report)
     
     try {
-      // If report has a viewUrl, use it directly
-      if (report.viewUrl) {
-        window.open(report.viewUrl, '_blank')
-        return
-      }
-      
-      // Otherwise, construct the URL based on report type
+      // Construct the API endpoint based on report type
       const viewEndpoint = report.type === 'web' 
         ? `/reports/web/${report.id}/view`
         : `/reports/user/${report.id}/view`
       
-      // Fetch the report HTML from API
+      // Fetch the report HTML from API through our proxy
       const response = await api.get(viewEndpoint)
       
-      // Check if response contains HTML (string starting with <!DOCTYPE or <html)
+      // Check if response contains HTML
       if (typeof response.data === 'string' && 
-          (response.data.trim().startsWith('<!DOCTYPE') || response.data.trim().startsWith('<html'))) {
+          (response.data.trim().startsWith('<!DOCTYPE') || 
+           response.data.trim().startsWith('<html') ||
+           response.data.trim().startsWith('<HTML'))) {
         // Create a blob with HTML content and open in new tab
         const blob = new Blob([response.data], { type: 'text/html' })
         const url = window.URL.createObjectURL(blob)
@@ -131,23 +127,13 @@ export default function Reports() {
         // Clean up the blob URL after opening
         setTimeout(() => window.URL.revokeObjectURL(url), 1000)
       } else {
-        // Fallback: try the downloadUrl
-        if (report.downloadUrl) {
-          window.open(report.downloadUrl, '_blank')
-        } else {
-          alert('Report format not recognized')
-        }
+        console.error('Unexpected response format:', typeof response.data)
+        alert('Report format not recognized. Response type: ' + typeof response.data)
       }
       
     } catch (error) {
       console.error('Error viewing report:', error)
-      
-      // Fallback: try the downloadUrl instead
-      if (report.downloadUrl) {
-        window.open(report.downloadUrl, '_blank')
-      } else {
-        alert('Unable to open report: ' + error.message)
-      }
+      alert('Unable to open report: ' + (error.response?.data?.message || error.message))
     }
   }
 
