@@ -17,7 +17,8 @@ import {
   AlertCircle,
   Plus,
   Filter,
-  Search
+  Search,
+  Target
 } from 'lucide-react'
 
 // Fallback mock data for when API is not available
