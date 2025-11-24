@@ -107,8 +107,19 @@ export default function Reports() {
     console.log('handleViewReport called with:', report)
     
     try {
+      // If report has a viewUrl, use it directly
+      if (report.viewUrl) {
+        window.open(report.viewUrl, '_blank')
+        return
+      }
+      
+      // Otherwise, construct the URL based on report type
+      const viewEndpoint = report.type === 'web' 
+        ? `/reports/web/${report.id}/view`
+        : `/reports/user/${report.id}/view`
+      
       // Fetch the report HTML from API
-      const response = await api.get(`/reports/${report.id}/view`)
+      const response = await api.get(viewEndpoint)
       
       // Check if response contains HTML (string starting with <!DOCTYPE or <html)
       if (typeof response.data === 'string' && 
