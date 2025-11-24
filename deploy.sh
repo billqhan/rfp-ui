@@ -26,36 +26,15 @@ echo "║          WEB UI DEPLOYMENT SCRIPT                     ║"
 echo "╚════════════════════════════════════════════════════════╝"
 echo ""
 
-# Check if bucket exists
+# Check if bucket exists (should be created by CloudFormation with CloudFront)
 echo "[1/4] Checking S3 bucket..."
 if aws s3 ls "s3://$BUCKET_NAME" --region $REGION >/dev/null 2>&1; then
     echo "  ✅ Bucket exists: $BUCKET_NAME"
 else
-    echo "  Creating S3 bucket: $BUCKET_NAME"
-    aws s3 mb "s3://$BUCKET_NAME" --region $REGION
-    
-    # Configure bucket for static website hosting
-    echo "  Configuring static website hosting..."
-    aws s3 website "s3://$BUCKET_NAME" --index-document index.html --error-document index.html
-    
-    # Set bucket policy for public read
-    cat > bucket-policy.json << EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "PublicReadGetObject",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::$BUCKET_NAME/*"
-        }
-    ]
-}
-EOF
-    aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy file://bucket-policy.json
-    rm -f bucket-policy.json
-    echo "  ✅ Website hosting configured"
+    echo "  ❌ Bucket not found: $BUCKET_NAME"
+    echo "  ℹ️  The S3 bucket should be created by CloudFormation infrastructure stack."
+    echo "  ℹ️  Run the infrastructure deployment first: ./rfp-infrastructure/scripts/deploy-infra.sh dev"
+    exit 1
 fi
 
 # Install dependencies
@@ -102,9 +81,13 @@ else
     echo "  ℹ️  No CloudFront distribution found"
 fi
 
-# Get website URL
-WEBSITE_URL="http://$BUCKET_NAME.s3-website-$REGION.amazonaws.com"
 echo ""
 echo "🎉 Deployment Successful!"
-echo "   S3 URL: $WEBSITE_URL"
+if [ -n "$CLOUDFRONT_URL" ]; then
+    echo "   🌐 CloudFront URL: $CLOUDFRONT_URL"
+    echo "   ℹ️  Changes will be visible after cache invalidation completes (1-3 minutes)"
+else
+    echo "   📦 Files uploaded to S3: s3://$BUCKET_NAME"
+    echo "   ℹ️  Access via CloudFront distribution (check CloudFormation outputs)"
+fi
 echo ""
