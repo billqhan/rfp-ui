@@ -96,7 +96,18 @@ export default function OpportunityDetail() {
   ]
 
   const displayOpp = opportunity || mockOpportunity
-  const displayMatches = matches || mockMatches
+  
+  // Ensure displayMatches is always an array
+  let displayMatches = mockMatches
+  if (matches) {
+    if (Array.isArray(matches)) {
+      displayMatches = matches
+    } else if (Array.isArray(matches.matches)) {
+      displayMatches = matches.matches
+    } else if (matches.data && Array.isArray(matches.data)) {
+      displayMatches = matches.data
+    }
+  }
 
   const safeFormat = (dateStr, fmt = 'MMM dd, yyyy') => {
     if (!dateStr) return 'N/A'
@@ -217,41 +228,47 @@ export default function OpportunityDetail() {
                     <p className="text-sm text-gray-600">{match.companyProfile}</p>
                   </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-success-700 mb-2">
-                      <Award className="w-4 h-4 inline mr-1" />
-                      Strengths
-                    </h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {match.strengths.map((strength, idx) => (
-                        <li key={idx} className="text-sm text-gray-600">{strength}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  {Array.isArray(match.strengths) && match.strengths.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-success-700 mb-2">
+                        <Award className="w-4 h-4 inline mr-1" />
+                        Strengths
+                      </h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {match.strengths.map((strength, idx) => (
+                          <li key={idx} className="text-sm text-gray-600">{strength}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-primary-700 mb-2">
-                      <Target className="w-4 h-4 inline mr-1" />
-                      Opportunities
-                    </h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {match.opportunities.map((opp, idx) => (
-                        <li key={idx} className="text-sm text-gray-600">{opp}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  {Array.isArray(match.opportunities) && match.opportunities.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-primary-700 mb-2">
+                        <Target className="w-4 h-4 inline mr-1" />
+                        Opportunities
+                      </h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {match.opportunities.map((opp, idx) => (
+                          <li key={idx} className="text-sm text-gray-600">{opp}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-warning-700 mb-2">
-                      <Clock className="w-4 h-4 inline mr-1" />
-                      Risks & Considerations
-                    </h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {match.risks.map((risk, idx) => (
-                        <li key={idx} className="text-sm text-gray-600">{risk}</li>
-                      ))}
-                    </ul>
-                  </div>
+                  {Array.isArray(match.risks) && match.risks.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-warning-700 mb-2">
+                        <Clock className="w-4 h-4 inline mr-1" />
+                        Risks & Considerations
+                      </h3>
+                      <ul className="list-disc list-inside space-y-1">
+                        {match.risks.map((risk, idx) => (
+                          <li key={idx} className="text-sm text-gray-600">{risk}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
