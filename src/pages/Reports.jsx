@@ -118,8 +118,8 @@ export default function Reports() {
           (response.data.trim().startsWith('<!DOCTYPE') || 
            response.data.trim().startsWith('<html') ||
            response.data.trim().startsWith('<HTML'))) {
-        // Create a blob with HTML content and open in new tab
-        const blob = new Blob([response.data], { type: 'text/html' })
+        // Create a blob with HTML content and UTF-8 encoding for emoji support
+        const blob = new Blob([response.data], { type: 'text/html; charset=utf-8' })
         const url = window.URL.createObjectURL(blob)
         window.open(url, '_blank')
         // Clean up the blob URL after opening
