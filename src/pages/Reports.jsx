@@ -104,8 +104,6 @@ export default function Reports() {
   const queryClient = useQueryClient()
 
   const handleViewReport = async (report) => {
-    console.log('handleViewReport called with:', report)
-    
     try {
       // Construct the API endpoint based on report type
       const viewEndpoint = report.type === 'web' 
@@ -147,10 +145,7 @@ export default function Reports() {
         pageSize: pageSize
       } 
     }),
-    select: (response) => {
-      console.log('Reports API response:', response.data);
-      return response.data;
-    },
+    select: (response) => response.data,
   })
 
   const reports = reportsResponse?.items || []

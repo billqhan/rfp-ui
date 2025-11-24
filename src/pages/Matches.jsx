@@ -109,7 +109,6 @@ export default function Matches() {
     queryKey: ['matches', filter, sortBy],
     queryFn: () => matchesApi.getAll({ filter, sortBy }),
     select: (response) => {
-      console.log('Matches API response:', response);
       
       // Handle different response formats
       let apiMatches = [];
@@ -121,13 +120,11 @@ export default function Matches() {
       } else if (Array.isArray(response?.data?.recent_matches)) {
         apiMatches = response.data.recent_matches;
       } else {
-        console.warn('Unexpected API response format:', response);
         return []; // Return empty array if format is unexpected
       }
       
       // Ensure apiMatches is an array before mapping
       if (!Array.isArray(apiMatches)) {
-        console.warn('apiMatches is not an array:', apiMatches);
         return [];
       }
       
@@ -225,10 +222,6 @@ export default function Matches() {
 
   // Ensure we always have an array
   const displayMatches = Array.isArray(matches) && matches.length > 0 ? matches : mockMatches
-  
-  console.log('Matches data:', matches);
-  console.log('Display matches:', displayMatches);
-  if (error) console.error('Matches query error:', error);
 
   // Ensure displayMatches is an array before filtering
   const filteredMatches = Array.isArray(displayMatches) ? displayMatches.filter(match => {
