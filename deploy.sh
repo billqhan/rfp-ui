@@ -76,9 +76,35 @@ echo "[4/4] Deploying to S3..."
 aws s3 sync dist/ "s3://$BUCKET_NAME" --delete --region $REGION
 echo "  ✅ Deployment completed"
 
+# Invalidate CloudFront cache if distribution exists
+echo ""
+echo "[5/5] Checking for CloudFront distribution..."
+CLOUDFRONT_ID=$(aws cloudformation describe-stacks \
+    --stack-name "rfp-${ENVIRONMENT:-dev}-master" \
+    --region us-east-1 \
+    --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontDistributionId`].OutputValue' \
+    --output text 2>/dev/null || echo "")
+
+if [ -n "$CLOUDFRONT_ID" ] && [ "$CLOUDFRONT_ID" != "None" ]; then
+    echo "  🔄 Invalidating CloudFront cache for distribution: $CLOUDFRONT_ID"
+    INVALIDATION_ID=$(aws cloudfront create-invalidation \
+        --distribution-id "$CLOUDFRONT_ID" \
+        --paths "/*" \
+        --query 'Invalidation.Id' \
+        --output text 2>/dev/null || echo "")
+    
+    if [ -n "$INVALIDATION_ID" ]; then
+        echo "  ✅ CloudFront invalidation created: $INVALIDATION_ID"
+        CLOUDFRONT_URL="https://$(aws cloudfront get-distribution --id "$CLOUDFRONT_ID" --query 'Distribution.DomainName' --output text)"
+        echo "  🌐 CloudFront URL: $CLOUDFRONT_URL"
+    fi
+else
+    echo "  ℹ️  No CloudFront distribution found"
+fi
+
 # Get website URL
 WEBSITE_URL="http://$BUCKET_NAME.s3-website-$REGION.amazonaws.com"
 echo ""
 echo "🎉 Deployment Successful!"
-echo "   UI URL: $WEBSITE_URL"
+echo "   S3 URL: $WEBSITE_URL"
 echo ""
