@@ -223,17 +223,19 @@ export default function Matches() {
     },
   ]
 
-  const displayMatches = matches && matches.length > 0 ? matches : mockMatches
+  // Ensure we always have an array
+  const displayMatches = Array.isArray(matches) && matches.length > 0 ? matches : mockMatches
   
   console.log('Matches data:', matches);
   console.log('Display matches:', displayMatches);
   if (error) console.error('Matches query error:', error);
 
-  const filteredMatches = displayMatches.filter(match => {
+  // Ensure displayMatches is an array before filtering
+  const filteredMatches = Array.isArray(displayMatches) ? displayMatches.filter(match => {
     if (filter === 'high') return match.score >= 0.85
     if (filter === 'medium') return match.score >= 0.7 && match.score < 0.85
     return true
-  })
+  }) : []
 
   return (
     <div className="p-6 space-y-6">
@@ -313,7 +315,9 @@ export default function Matches() {
             <div>
               <p className="text-sm font-medium text-gray-600">Avg Score</p>
               <p className="mt-2 text-3xl font-semibold text-primary-600">
-                {((displayMatches.reduce((sum, m) => sum + m.score, 0) / displayMatches.length) * 100).toFixed(0)}%
+                {Array.isArray(displayMatches) && displayMatches.length > 0 
+                  ? ((displayMatches.reduce((sum, m) => sum + m.score, 0) / displayMatches.length) * 100).toFixed(0)
+                  : 0}%
               </p>
             </div>
             <Star className="w-12 h-12 text-primary-600 opacity-20" />
