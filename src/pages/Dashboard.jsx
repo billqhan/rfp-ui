@@ -151,28 +151,34 @@ export default function Dashboard() {
     select: (response) => response.data,
   })
 
-  // Extract chart data from metrics
-  const chartData = metrics?.opportunities_over_time?.map((item, index) => ({
-    date: item.date ? new Date(item.date).toLocaleDateString() : '',
-    opportunities: item.count || 0,
-    matches: metrics?.matches_over_time?.[index]?.count || 0,
-  }))
+  // Extract chart data from metrics - ensure we have arrays
+  const chartData = Array.isArray(metrics?.opportunities_over_time) 
+    ? metrics.opportunities_over_time.map((item, index) => ({
+        date: item.date ? new Date(item.date).toLocaleDateString() : '',
+        opportunities: item.count || 0,
+        matches: metrics?.matches_over_time?.[index]?.count || 0,
+      }))
+    : null
 
   // Extract recent activity from metrics
-  const recentActivity = metrics?.recent_opportunities?.slice(0, 5)?.map(opp => ({
-    type: 'info',
-    message: `New opportunity: ${opp.title}`,
-    time: opp.posted_date ? new Date(opp.posted_date).toLocaleDateString() : '',
-  }))
+  const recentActivity = Array.isArray(metrics?.recent_opportunities)
+    ? metrics.recent_opportunities.slice(0, 5).map(opp => ({
+        type: 'info',
+        message: `New opportunity: ${opp.title}`,
+        time: opp.posted_date ? new Date(opp.posted_date).toLocaleDateString() : '',
+      }))
+    : null
 
   // Extract top matches from metrics
-  const topMatches = metrics?.recent_matches?.slice(0, 5)?.map(match => ({
-    title: match.opportunity_title,
-    agency: 'Unknown',
-    score: match.match_score,
-    value: '-',
-    date: match.match_date ? new Date(match.match_date).toLocaleDateString() : '',
-  }))
+  const topMatches = Array.isArray(metrics?.recent_matches)
+    ? metrics.recent_matches.slice(0, 5).map(match => ({
+        title: match.opportunity_title,
+        agency: 'Unknown',
+        score: match.match_score,
+        value: '-',
+        date: match.match_date ? new Date(match.match_date).toLocaleDateString() : '',
+      }))
+    : null
 
   // Mock data for demo (replace with API data)
   const mockMetrics = {
