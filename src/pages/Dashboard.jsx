@@ -144,29 +144,35 @@ function TopMatches({ matches, loading }) {
 }
 
 export default function Dashboard() {
+  // Single API call to get all dashboard data
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['dashboard-metrics'],
     queryFn: () => dashboardApi.getMetrics(),
     select: (response) => response.data,
   })
 
-  const { data: chartData, isLoading: chartLoading } = useQuery({
-    queryKey: ['dashboard-charts', '7d'],
-    queryFn: () => dashboardApi.getChartData('opportunities', '7d'),
-    select: (response) => response.data,
-  })
+  // Extract chart data from metrics
+  const chartData = metrics?.opportunities_over_time?.map((item, index) => ({
+    date: item.date ? new Date(item.date).toLocaleDateString() : '',
+    opportunities: item.count || 0,
+    matches: metrics?.matches_over_time?.[index]?.count || 0,
+  }))
 
-  const { data: recentActivity, isLoading: activityLoading } = useQuery({
-    queryKey: ['dashboard-activity'],
-    queryFn: () => dashboardApi.getRecentActivity(5),
-    select: (response) => response.data,
-  })
+  // Extract recent activity from metrics
+  const recentActivity = metrics?.recent_opportunities?.slice(0, 5)?.map(opp => ({
+    type: 'info',
+    message: `New opportunity: ${opp.title}`,
+    time: opp.posted_date ? new Date(opp.posted_date).toLocaleDateString() : '',
+  }))
 
-  const { data: topMatches, isLoading: matchesLoading } = useQuery({
-    queryKey: ['dashboard-top-matches'],
-    queryFn: () => dashboardApi.getTopMatches(5),
-    select: (response) => response.data,
-  })
+  // Extract top matches from metrics
+  const topMatches = metrics?.recent_matches?.slice(0, 5)?.map(match => ({
+    title: match.opportunity_title,
+    agency: 'Unknown',
+    score: match.match_score,
+    value: '-',
+    date: match.match_date ? new Date(match.match_date).toLocaleDateString() : '',
+  }))
 
   // Mock data for demo (replace with API data)
   const mockMetrics = {
@@ -244,7 +250,18 @@ export default function Dashboard() {
     },
   ]
 
-  const displayMetrics = metrics || mockMetrics
+  // Use API data with fallback to mock data
+  const displayMetrics = {
+    totalOpportunities: metrics?.total_opportunities || mockMetrics.totalOpportunities,
+    totalMatches: metrics?.total_matches || mockMetrics.totalMatches,
+    highQualityMatches: metrics?.recent_matches?.filter(m => m.confidence_level === 'HIGH').length || mockMetrics.highQualityMatches,
+    pending: metrics?.active_workflows || mockMetrics.pending,
+    opportunitiesChange: mockMetrics.opportunitiesChange,
+    matchesChange: mockMetrics.matchesChange,
+    qualityChange: mockMetrics.qualityChange,
+    pendingChange: mockMetrics.pendingChange,
+  }
+  
   const displayChartData = chartData || mockChartData
   const displayActivity = recentActivity || mockActivity
   const displayMatches = topMatches || mockTopMatches
@@ -300,34 +317,39 @@ export default function Dashboard() {
         {/* Opportunities Trend */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Opportunities Trend (7 Days)</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={displayChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tickFormatter={(date) => format(parseISO(date), 'MMM dd')}
-              />
-              <YAxis />
-              <Tooltip 
-                labelFormatter={(date) => format(parseISO(date), 'MMM dd, yyyy')}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="opportunities" 
-                stroke="#3b82f6" 
-                strokeWidth={2}
-                name="Opportunities"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="matches" 
-                stroke="#22c55e" 
-                strokeWidth={2}
-                name="Matches"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          {metricsLoading ? (
+            <div className="flex items-center justify-center h-[300px]">
+              <div className="text-gray-400">Loading chart data...</div>
+            </div>
+          ) : displayChartData && displayChartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={displayChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="opportunities" 
+                  stroke="#3b82f6" 
+                  strokeWidth={2}
+                  name="Opportunities"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="matches" 
+                  stroke="#22c55e" 
+                  strokeWidth={2}
+                  name="Matches"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px]">
+              <div className="text-gray-400">No chart data available</div>
+            </div>
+          )}
         </div>
 
         {/* Category Distribution */}
@@ -360,13 +382,13 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-          <RecentActivity activities={displayActivity} loading={activityLoading} />
+          <RecentActivity activities={displayActivity} loading={metricsLoading} />
         </div>
 
         {/* Top Matches */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Matches</h3>
-          <TopMatches matches={displayMatches} loading={matchesLoading} />
+          <TopMatches matches={displayMatches} loading={metricsLoading} />
         </div>
       </div>
     </div>
