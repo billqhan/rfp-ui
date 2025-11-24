@@ -109,21 +109,40 @@ export default function Matches() {
     queryKey: ['matches', filter, sortBy],
     queryFn: () => matchesApi.getAll({ filter, sortBy }),
     select: (response) => {
-      console.log('Matches API response:', response.data);
-      const apiMatches = response.data?.items || response.data || [];
+      console.log('Matches API response:', response);
+      
+      // Handle different response formats
+      let apiMatches = [];
+      
+      if (Array.isArray(response?.data)) {
+        apiMatches = response.data;
+      } else if (Array.isArray(response?.data?.items)) {
+        apiMatches = response.data.items;
+      } else if (Array.isArray(response?.data?.recent_matches)) {
+        apiMatches = response.data.recent_matches;
+      } else {
+        console.warn('Unexpected API response format:', response);
+        return []; // Return empty array if format is unexpected
+      }
+      
+      // Ensure apiMatches is an array before mapping
+      if (!Array.isArray(apiMatches)) {
+        console.warn('apiMatches is not an array:', apiMatches);
+        return [];
+      }
       
       // Map API response to expected UI format
       return apiMatches.map(match => ({
-        id: match.id,
-        opportunityId: match.opportunityId,
-        opportunityTitle: match.title,
-        description: `Match Score: ${(match.matchScore * 100).toFixed(0)}% - ${match.reason}`,
-        agency: match.agency,
-        category: match.type,
-        matchedDate: match.createdDate,
-        value: '$0',
-        score: match.matchScore,
-        keyFactors: [match.status, 'AI Match', 'Automated'],
+        id: match.id || match.match_id,
+        opportunityId: match.opportunityId || match.opportunity_id,
+        opportunityTitle: match.title || match.opportunity_title,
+        description: match.description || `Match Score: ${((match.matchScore || match.match_score || 0) * 100).toFixed(0)}%`,
+        agency: match.agency || 'Unknown',
+        category: match.type || match.category || 'General',
+        matchedDate: match.createdDate || match.match_date || new Date().toISOString(),
+        value: match.value || '$0',
+        score: match.matchScore || match.match_score || 0,
+        keyFactors: match.keyFactors || match.reasons || [match.status || 'AI Match', 'Automated'],
       }));
     },
   })

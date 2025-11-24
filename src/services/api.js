@@ -67,8 +67,8 @@ export const opportunitiesApi = {
 };
 
 export const matchesApi = {
-  // Get matches
-  getAll: (params) => api.get('/matches', { params }),
+  // Get matches - fallback to dashboard endpoint since /matches doesn't exist
+  getAll: (params) => api.get('/dashboard/metrics').catch(() => api.get('/matches', { params })),
   getById: (id) => api.get(`/matches/${id}`),
   getByOpportunity: (opportunityId) => api.get(`/matches/opportunity/${opportunityId}`),
   
